@@ -102,7 +102,7 @@ namespace IncomeDistribution
                 }
                 else
                 {
-                    scope_list[name] = new Mumber(name);
+                    scope_list[name] = current_mumbers[name];
                     return true;
                 }
             }
@@ -124,7 +124,8 @@ namespace IncomeDistribution
                 }
                 else
                 {
-                    scope_list[name] = new Mumber(name);
+                    scope_list[name] = current_mumbers[name];
+                    scope_list[name].isScopeOnly = true;
                     return true;
                 }
             }
@@ -358,7 +359,7 @@ namespace IncomeDistribution
                     MessageBoxIcon.Warning,
                     MessageBoxDefaultButton.Button2);
 
-                if (MsgBoxResult == DialogResult.Yes)//如果对话框的返回值是YES（按"Y"按钮）
+                if (MsgBoxResult == DialogResult.Yes)
                 {
                     foreach (Mumber m in new_account)
                     {
