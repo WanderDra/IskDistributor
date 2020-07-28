@@ -55,6 +55,9 @@
             this.titleTB = new System.Windows.Forms.TextBox();
             this.removeCMumberBtn = new System.Windows.Forms.Button();
             this.addScopeOnlyBtn = new System.Windows.Forms.Button();
+            this.importMumberListBtn2 = new System.Windows.Forms.Button();
+            this.exportMumberListBtn2 = new System.Windows.Forms.Button();
+            this.KMCheckBtn = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // FleetInfoTB
@@ -73,9 +76,9 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(19, 11);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(161, 12);
+            this.label1.Size = new System.Drawing.Size(185, 12);
             this.label1.TabIndex = 1;
-            this.label1.Text = "复制舰队编制至下方文本框内";
+            this.label1.Text = "复制舰队成员列表至下方文本框内";
             // 
             // label2
             // 
@@ -112,7 +115,7 @@
             this.openAvoidListBtn.Name = "openAvoidListBtn";
             this.openAvoidListBtn.Size = new System.Drawing.Size(75, 23);
             this.openAvoidListBtn.TabIndex = 4;
-            this.openAvoidListBtn.Text = "小号列表";
+            this.openAvoidListBtn.Text = "账号列表";
             this.openAvoidListBtn.UseVisualStyleBackColor = true;
             this.openAvoidListBtn.Click += new System.EventHandler(this.openAvoidListBtn_Click);
             // 
@@ -169,9 +172,9 @@
             // 
             this.importAccountFromFileBtn.Location = new System.Drawing.Point(21, 368);
             this.importAccountFromFileBtn.Name = "importAccountFromFileBtn";
-            this.importAccountFromFileBtn.Size = new System.Drawing.Size(93, 23);
+            this.importAccountFromFileBtn.Size = new System.Drawing.Size(132, 23);
             this.importAccountFromFileBtn.TabIndex = 7;
-            this.importAccountFromFileBtn.Text = "导入账号列表";
+            this.importAccountFromFileBtn.Text = "导入账号列表(邮件)";
             this.importAccountFromFileBtn.UseVisualStyleBackColor = true;
             this.importAccountFromFileBtn.Click += new System.EventHandler(this.importAccountFromFileBtn_Click);
             // 
@@ -308,6 +311,36 @@
             this.addScopeOnlyBtn.UseVisualStyleBackColor = true;
             this.addScopeOnlyBtn.Click += new System.EventHandler(this.addScopeOnlyBtn_Click);
             // 
+            // importMumberListBtn2
+            // 
+            this.importMumberListBtn2.Location = new System.Drawing.Point(21, 409);
+            this.importMumberListBtn2.Name = "importMumberListBtn2";
+            this.importMumberListBtn2.Size = new System.Drawing.Size(132, 23);
+            this.importMumberListBtn2.TabIndex = 7;
+            this.importMumberListBtn2.Text = "导入账号列表(直观)";
+            this.importMumberListBtn2.UseVisualStyleBackColor = true;
+            this.importMumberListBtn2.Click += new System.EventHandler(this.importMumberListBtn2_Click);
+            // 
+            // exportMumberListBtn2
+            // 
+            this.exportMumberListBtn2.Location = new System.Drawing.Point(21, 435);
+            this.exportMumberListBtn2.Name = "exportMumberListBtn2";
+            this.exportMumberListBtn2.Size = new System.Drawing.Size(132, 23);
+            this.exportMumberListBtn2.TabIndex = 7;
+            this.exportMumberListBtn2.Text = "导出账号列表(直观)";
+            this.exportMumberListBtn2.UseVisualStyleBackColor = true;
+            this.exportMumberListBtn2.Click += new System.EventHandler(this.exportMumberListBtn2_Click);
+            // 
+            // KMCheckBtn
+            // 
+            this.KMCheckBtn.Location = new System.Drawing.Point(270, 363);
+            this.KMCheckBtn.Name = "KMCheckBtn";
+            this.KMCheckBtn.Size = new System.Drawing.Size(75, 23);
+            this.KMCheckBtn.TabIndex = 4;
+            this.KMCheckBtn.Text = "KM核对";
+            this.KMCheckBtn.UseVisualStyleBackColor = true;
+            this.KMCheckBtn.Click += new System.EventHandler(this.KMCheckBtn_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -317,9 +350,12 @@
             this.Controls.Add(this.titleTB);
             this.Controls.Add(this.incomeTB);
             this.Controls.Add(this.scopeBonusTB);
+            this.Controls.Add(this.exportMumberListBtn2);
+            this.Controls.Add(this.importMumberListBtn2);
             this.Controls.Add(this.importAccountFromFileBtn);
             this.Controls.Add(this.mainAccountTB);
             this.Controls.Add(this.mumberLV);
+            this.Controls.Add(this.KMCheckBtn);
             this.Controls.Add(this.openAvoidListBtn);
             this.Controls.Add(this.addMainAccountBtn);
             this.Controls.Add(this.addSubAccountBtn);
@@ -374,6 +410,9 @@
         private System.Windows.Forms.TextBox titleTB;
         private System.Windows.Forms.Button removeCMumberBtn;
         private System.Windows.Forms.Button addScopeOnlyBtn;
+        private System.Windows.Forms.Button importMumberListBtn2;
+        private System.Windows.Forms.Button exportMumberListBtn2;
+        private System.Windows.Forms.Button KMCheckBtn;
     }
 }
 

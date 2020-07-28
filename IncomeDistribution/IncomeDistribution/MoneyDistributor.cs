@@ -7,6 +7,9 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using System.Runtime.Serialization.Formatters.Binary;
+using NPOI;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
 
 
 namespace IncomeDistribution
@@ -18,6 +21,7 @@ namespace IncomeDistribution
 
         private Dictionary<string, Mumber> scope_list;
         private Dictionary<string, Mumber> soldier_list;
+
 
         private string report;
 
@@ -52,6 +56,25 @@ namespace IncomeDistribution
                 original_parent = "";
                 isScope = 0;
                 isScopeOnly = false;
+            }
+        }
+
+        public class MumberNode
+        {
+            public Mumber m;
+            public MumberNode parent = null;
+            public List<MumberNode> childs;
+            public MumberNode(Mumber m)
+            {
+                this.m = m;
+                childs = new List<MumberNode>();
+            }
+
+            public MumberNode(Mumber m, MumberNode parent) 
+            {
+                this.m = m;
+                this.parent = parent;
+                childs = new List<MumberNode>();
             }
         }
 
@@ -287,6 +310,93 @@ namespace IncomeDistribution
             file.Close();
         }
 
+        /// <summary>
+        /// Mumber Node List is for mumber list file generation.
+        /// </summary>
+        /// <returns></returns>
+        public Dictionary<string, MumberNode> getMumberNodeList()
+        {
+            Dictionary<string, MumberNode> node_list = new Dictionary<string, MumberNode>();
+            
+            foreach (Mumber m in mumbers_list.Values)
+            {
+                if (m.parent == "")
+                {
+                    MumberNode parent = new MumberNode(m);
+                    node_list[parent.m.name] = parent;
+                }
+            }
+
+            foreach (Mumber m in mumbers_list.Values)
+            {
+                if (m.parent != "")
+                {
+                    MumberNode child = new MumberNode(m, node_list[m.parent]);
+                    node_list[m.parent].childs.Add(child);
+                }
+            }
+
+            return node_list;
+        }
+
+        public void importMumberNodeListFromFile(string path)
+        {
+            FileStream file = new FileStream(path, FileMode.Open);
+            StreamReader sr = new StreamReader(file);
+            Dictionary<string, MumberNode> node_list = new Dictionary<string, MumberNode>();
+            string line;
+            string parent = "";
+            while ((line = sr.ReadLine()) != null)
+            {
+                if (line.Substring(0, 1) != "\t")
+                {
+                    Mumber new_parent = new Mumber(line.Trim());
+                    node_list[new_parent.name] = new MumberNode(new_parent);
+                    parent = new_parent.name;
+                }
+                else
+                {
+                    Mumber new_child = new Mumber(line.Trim());
+                    node_list[parent].childs.Add(new MumberNode(new_child, node_list[parent]));
+                }
+            }
+            sr.Close();
+            file.Close();
+
+            // Save the Node list to Mumber List (Will replace the original data)
+            mumbers_list.Clear();
+            foreach (MumberNode node in node_list.Values)
+            {
+                mumbers_list[node.m.name] = node.m;
+                foreach (MumberNode child in node.childs)
+                {
+                    mumbers_list[child.m.name] = child.m;
+                    mumbers_list[child.m.name].parent = child.parent.m.name;
+                }
+            }
+            saveMumberList();
+        }
+
+        // Generate a mumber list file according to Mumber Node List
+        public void genMumberListFile(string path)
+        {
+            FileStream file = new FileStream(path, FileMode.Create);
+            StreamWriter sw = new StreamWriter(file);
+            Dictionary<string, MumberNode> node_list = getMumberNodeList();
+            foreach (MumberNode n in node_list.Values)
+            {
+                sw.WriteLine(n.m.name);
+                foreach(MumberNode child in n.childs)
+                {
+                    sw.WriteLine("\t" + child.m.name);
+                }
+            }
+            sw.Close();
+            file.Close();
+        }
+
+        //////////////////////////////////////////////////////////////////////
+
         public void importMumberFromFile(FileStream file)
         {
             StreamReader sr = new StreamReader(file);
@@ -473,7 +583,132 @@ namespace IncomeDistribution
 
             report += "斥候奖励: " + scope_bonus.ToString("N0") + " /人\r\n";
             report += "参与奖励: " + avg.ToString("N0") + " /人\r\n";
+
+            exportToExcel(MainForm.p_MainForm.getTitle(), soldier_list_temp, scope_list_temp, income, avg, scope_bonus);
+
             return report;
         }
+
+        public void exportToExcel(string title, List<string> soldier_list, List<string> scope_list, double income, double avg, double scope_bouns)
+        {
+            string path = AppDomain.CurrentDomain.BaseDirectory + "Excels" + Path.DirectorySeparatorChar;
+            string time = DateTime.Now.ToString().Replace(" ", "_");
+            time = time.Replace(":", "_");
+            time = time.Replace("/", "_");
+            string name = title + "_" + time + ".xlsx";
+            string export_path = path + name;
+            List<List<string>> table = new List<List<string>>();
+
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+
+            FileStream fs = new FileStream(export_path, FileMode.Create, FileAccess.ReadWrite);
+            IWorkbook workbook = new XSSFWorkbook();
+            ISheet sheet = workbook.CreateSheet("结算表");
+            
+            for (int i = 0; i < 8; i++)
+            {
+                List<string> col = new List<string>();
+                table.Add(col);
+            }
+
+            // Participants Col 1, 2
+            // Col 1
+            table[0].Add("参与:");
+            for (int i = 1; i <= soldier_list.Count; i++)
+            {
+                table[0].Add(soldier_list[i - 1]);
+            }
+            table[0].Add("");
+            table[0].Add("共计(人):");
+            
+            // Col 2
+            table[1].Add("工资:");
+            for (int i = 1; i <= soldier_list.Count; i++)
+            {
+                table[1].Add(avg.ToString("N0"));
+            }
+            table[1].Add("");
+            table[1].Add(soldier_list.Count.ToString());
+
+            // Scopes Col 4, 5
+            // Col 4
+            table[3].Add("斥候:");
+            for (int i = 1; i <= scope_list.Count; i++)
+            {
+                table[3].Add(scope_list[i - 1]);
+            }
+            table[3].Add("");
+            table[3].Add("共计(人):");
+            // Col 5
+            table[4].Add("工资:");
+            for (int i = 1; i <= scope_list.Count; i++)
+            {
+                table[4].Add(scope_bouns.ToString("N0"));
+            }
+            table[4].Add("");
+            table[4].Add(scope_list.Count.ToString());
+
+            // Result Col 7, 8
+            // Col 7
+            table[6].Add("事件:");
+            table[6].Add("斥候分成:");
+            table[6].Add("斥候总奖励:");
+            table[6].Add("总收入:");
+            table[6].Add("日期:");
+            // Col 8
+            table[7].Add(title);
+            table[7].Add(Program.SCOPE_BONUS * 100 + "%");
+            table[7].Add((income * Program.SCOPE_BONUS).ToString("N0"));
+            table[7].Add(income.ToString("N0"));
+            table[7].Add(DateTime.Now.ToString());
+
+            int max_length = 0;
+            foreach (List<string> col in table)
+            {
+                int length = col.Count;
+                if (length > max_length)
+                {
+                    max_length = length;
+                }
+            }
+
+            List<IRow> rows = new List<IRow>();
+            for (int i = 0; i < max_length; i++)
+            {
+                IRow row = sheet.CreateRow(i);
+                rows.Add(row);
+            }
+
+            for (int i = 0; i < max_length; i++)
+            {
+                for (int j = 0; j < table.Count; j++)
+                {
+                    if (table[j].Count > i)
+                    {
+                        rows[i].CreateCell(j).SetCellValue(table[j][i]);
+                    }
+                }
+            }
+
+            // Format Resize
+            // Row 1
+            sheet.SetColumnWidth(0, 30 * 256);
+            // Row 2
+            sheet.SetColumnWidth(1, 20 * 256);
+            // Row 4
+            sheet.SetColumnWidth(3, 30 * 256);
+            // Row 5
+            sheet.SetColumnWidth(4, 20 * 256);
+            // Row 7
+            sheet.SetColumnWidth(6, 15 * 256);
+            // Row 8
+            sheet.SetColumnWidth(7, 20 * 256);
+            workbook.Write(fs);
+            fs.Close();
+        }
+
     }
 }

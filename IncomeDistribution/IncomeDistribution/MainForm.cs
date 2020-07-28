@@ -65,6 +65,20 @@ namespace IncomeDistribution
             }
         }
 
+        public string getTitle()
+        {
+            string title;
+            if (titleTB.Text.ToString().Length != 0)
+            {
+                title = titleTB.Text.ToString();
+            }
+            else
+            {
+                title = "UnnamedAction";
+            }
+            return title;
+        }
+
         private void FleetInfoTB_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
@@ -237,11 +251,65 @@ namespace IncomeDistribution
             }
         }
 
-        private void addCMumberBtn_Click(object sender, EventArgs e)
+        private void importMumberListBtn2_Click(object sender, EventArgs e)
         {
+            // Replace warning 
+            DialogResult MsgBoxResult;
+            MsgBoxResult = MessageBox.Show("导入将会覆盖原有列表，是否继续？",
+                "警告",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning,
+                MessageBoxDefaultButton.Button2);
 
+            if (MsgBoxResult == DialogResult.Yes)
+            {
+                OpenFileDialog ofd = new OpenFileDialog();
+                string init_path = AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + "ExportedAccountList";
+                if (!Directory.Exists(init_path))
+                {
+                    Directory.CreateDirectory(init_path);
+                }
+                ofd.InitialDirectory = init_path;
+                ofd.Filter = "文本文件|*.txt";
+                ofd.RestoreDirectory = true;
+                ofd.FilterIndex = 1;
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    string fName = ofd.FileName;
+                    Program.md.importMumberNodeListFromFile(fName);
+                    MessageBox.Show("导入完成");
+                }
+            }
         }
 
+        private void exportMumberListBtn2_Click(object sender, EventArgs e)
+        {
+            string time = DateTime.Now.ToString().Replace(" ", "_");
+            time = time.Replace(":", "_");
+            time = time.Replace("/", "_");
 
+            SaveFileDialog sfd = new SaveFileDialog();
+            string init_path = AppDomain.CurrentDomain.BaseDirectory + Path.DirectorySeparatorChar + "ExportedAccountList";
+            if (!Directory.Exists(init_path))
+            {
+                Directory.CreateDirectory(init_path);
+            }
+            sfd.InitialDirectory = init_path;
+            sfd.FileName = "账号列表_" + time;
+            sfd.Filter = "文本文件|*.txt";
+            sfd.RestoreDirectory = true;
+            sfd.FilterIndex = 1;
+            if (sfd.ShowDialog() == DialogResult.OK)
+            {
+                string fName = sfd.FileName;
+                Program.md.genMumberListFile(fName);
+                MessageBox.Show("导出完成");
+            }
+        }
+
+        private void KMCheckBtn_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("敬请期待！");
+        }
     }
 }
