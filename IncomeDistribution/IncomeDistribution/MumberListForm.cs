@@ -148,7 +148,7 @@ namespace IncomeDistribution
 
         private void accountListForm_Deactivate(object sender, EventArgs e)
         {
-            MainForm.p_MainForm.refreshMumberLV();
+            MainForm.p_MainForm.genMumberLV();
         }
     }
 }

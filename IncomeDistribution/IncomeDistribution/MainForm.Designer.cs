@@ -58,6 +58,8 @@
             this.importMumberListBtn2 = new System.Windows.Forms.Button();
             this.exportMumberListBtn2 = new System.Windows.Forms.Button();
             this.KMCheckBtn = new System.Windows.Forms.Button();
+            this.resetKMBtn = new System.Windows.Forms.Button();
+            this.introBtn = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // FleetInfoTB
@@ -101,7 +103,7 @@
             // 
             // addSubAccountBtn
             // 
-            this.addSubAccountBtn.Location = new System.Drawing.Point(270, 437);
+            this.addSubAccountBtn.Location = new System.Drawing.Point(270, 446);
             this.addSubAccountBtn.Name = "addSubAccountBtn";
             this.addSubAccountBtn.Size = new System.Drawing.Size(75, 23);
             this.addSubAccountBtn.TabIndex = 3;
@@ -111,7 +113,7 @@
             // 
             // openAvoidListBtn
             // 
-            this.openAvoidListBtn.Location = new System.Drawing.Point(176, 368);
+            this.openAvoidListBtn.Location = new System.Drawing.Point(176, 363);
             this.openAvoidListBtn.Name = "openAvoidListBtn";
             this.openAvoidListBtn.Size = new System.Drawing.Size(75, 23);
             this.openAvoidListBtn.TabIndex = 4;
@@ -138,7 +140,7 @@
             // new_mark
             // 
             this.new_mark.Text = "新";
-            this.new_mark.Width = 24;
+            this.new_mark.Width = 32;
             // 
             // id
             // 
@@ -152,7 +154,7 @@
             // 
             // mainAccountTB
             // 
-            this.mainAccountTB.Location = new System.Drawing.Point(351, 437);
+            this.mainAccountTB.Location = new System.Drawing.Point(351, 446);
             this.mainAccountTB.Name = "mainAccountTB";
             this.mainAccountTB.Size = new System.Drawing.Size(156, 21);
             this.mainAccountTB.TabIndex = 6;
@@ -160,7 +162,7 @@
             // 
             // addMainAccountBtn
             // 
-            this.addMainAccountBtn.Location = new System.Drawing.Point(270, 409);
+            this.addMainAccountBtn.Location = new System.Drawing.Point(270, 418);
             this.addMainAccountBtn.Name = "addMainAccountBtn";
             this.addMainAccountBtn.Size = new System.Drawing.Size(75, 23);
             this.addMainAccountBtn.TabIndex = 3;
@@ -170,7 +172,7 @@
             // 
             // importAccountFromFileBtn
             // 
-            this.importAccountFromFileBtn.Location = new System.Drawing.Point(21, 368);
+            this.importAccountFromFileBtn.Location = new System.Drawing.Point(21, 363);
             this.importAccountFromFileBtn.Name = "importAccountFromFileBtn";
             this.importAccountFromFileBtn.Size = new System.Drawing.Size(132, 23);
             this.importAccountFromFileBtn.TabIndex = 7;
@@ -313,7 +315,7 @@
             // 
             // importMumberListBtn2
             // 
-            this.importMumberListBtn2.Location = new System.Drawing.Point(21, 409);
+            this.importMumberListBtn2.Location = new System.Drawing.Point(21, 418);
             this.importMumberListBtn2.Name = "importMumberListBtn2";
             this.importMumberListBtn2.Size = new System.Drawing.Size(132, 23);
             this.importMumberListBtn2.TabIndex = 7;
@@ -323,7 +325,7 @@
             // 
             // exportMumberListBtn2
             // 
-            this.exportMumberListBtn2.Location = new System.Drawing.Point(21, 435);
+            this.exportMumberListBtn2.Location = new System.Drawing.Point(21, 444);
             this.exportMumberListBtn2.Name = "exportMumberListBtn2";
             this.exportMumberListBtn2.Size = new System.Drawing.Size(132, 23);
             this.exportMumberListBtn2.TabIndex = 7;
@@ -341,12 +343,33 @@
             this.KMCheckBtn.UseVisualStyleBackColor = true;
             this.KMCheckBtn.Click += new System.EventHandler(this.KMCheckBtn_Click);
             // 
+            // resetKMBtn
+            // 
+            this.resetKMBtn.Location = new System.Drawing.Point(270, 391);
+            this.resetKMBtn.Name = "resetKMBtn";
+            this.resetKMBtn.Size = new System.Drawing.Size(75, 23);
+            this.resetKMBtn.TabIndex = 4;
+            this.resetKMBtn.Text = "重置KM信息";
+            this.resetKMBtn.UseVisualStyleBackColor = true;
+            this.resetKMBtn.Click += new System.EventHandler(this.resetKMBtn_Click);
+            // 
+            // introBtn
+            // 
+            this.introBtn.Location = new System.Drawing.Point(399, 5);
+            this.introBtn.Name = "introBtn";
+            this.introBtn.Size = new System.Drawing.Size(68, 21);
+            this.introBtn.TabIndex = 9;
+            this.introBtn.Text = "符号说明";
+            this.introBtn.UseVisualStyleBackColor = true;
+            this.introBtn.Click += new System.EventHandler(this.introBtn_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.ClientSize = new System.Drawing.Size(800, 487);
+            this.Controls.Add(this.introBtn);
             this.Controls.Add(this.titleTB);
             this.Controls.Add(this.incomeTB);
             this.Controls.Add(this.scopeBonusTB);
@@ -355,6 +378,7 @@
             this.Controls.Add(this.importAccountFromFileBtn);
             this.Controls.Add(this.mainAccountTB);
             this.Controls.Add(this.mumberLV);
+            this.Controls.Add(this.resetKMBtn);
             this.Controls.Add(this.KMCheckBtn);
             this.Controls.Add(this.openAvoidListBtn);
             this.Controls.Add(this.addMainAccountBtn);
@@ -374,6 +398,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.reportTB);
             this.Controls.Add(this.FleetInfoTB);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "MainForm";
             this.Text = "资金结算小程序";
             this.ResumeLayout(false);
@@ -413,6 +438,8 @@
         private System.Windows.Forms.Button importMumberListBtn2;
         private System.Windows.Forms.Button exportMumberListBtn2;
         private System.Windows.Forms.Button KMCheckBtn;
+        private System.Windows.Forms.Button resetKMBtn;
+        private System.Windows.Forms.Button introBtn;
     }
 }
 

@@ -19,15 +19,13 @@ namespace IncomeDistribution
         private Dictionary<string, Mumber> current_mumbers;
         private Dictionary<string, Mumber> mumbers_list;
 
-        private Dictionary<string, Mumber> scope_list;
-        private Dictionary<string, Mumber> soldier_list;
 
+        private List<string> km_list;
 
         private string report;
 
         public Dictionary<string, Mumber> Current_mumbers { get => current_mumbers; set => current_mumbers = value; }
         public Dictionary<string, Mumber> Mumbers_list { get => mumbers_list; }
-        public Dictionary<string, Mumber> Scope_list { get => scope_list; }
 
         [Serializable()]
         public class Mumber
@@ -36,16 +34,23 @@ namespace IncomeDistribution
             public string parent;
             public bool isNew;
             public string original_parent;
+
             public int isScope;
+            public bool isScope_new;            // Will replace old one in next version.
             public bool isScopeOnly;
+            public bool? isInKM;
+            public bool? isInKMOnly;
+
             public Mumber()
             {
                 name = "";
                 parent = "";
                 isNew = true;
                 original_parent = "";
-                isScope = 0;
+                isScope_new = false;
                 isScopeOnly = false;
+                isInKM = null;
+                isInKMOnly = null;
             }
 
             public Mumber(string name)
@@ -54,8 +59,10 @@ namespace IncomeDistribution
                 parent = "";
                 isNew = true;
                 original_parent = "";
-                isScope = 0;
+                isScope_new = false;
                 isScopeOnly = false;
+                isInKM = null;
+                isInKMOnly = null;
             }
         }
 
@@ -82,11 +89,23 @@ namespace IncomeDistribution
         {
             current_mumbers = new Dictionary<string, Mumber>();
             mumbers_list = new Dictionary<string, Mumber>();
-            soldier_list = new Dictionary<string, Mumber>();
-            scope_list = new Dictionary<string, Mumber>();
+            km_list = new List<string>();
             Program.formatter = new BinaryFormatter();
             report = "";
             readMumberList();
+            initData();
+        }
+
+        public void initData()
+        {
+            foreach(Mumber m in mumbers_list.Values)
+            {
+                m.isScope = 0;
+                m.isScope_new = false;
+                m.isScopeOnly = false;
+                m.isInKM = null;
+                m.isInKMOnly = null;
+            }
         }
 
 
@@ -114,69 +133,64 @@ namespace IncomeDistribution
             current_mumbers.Clear();
         }
 
-        public bool addScope(string name)
+        public void readKM(string km)
         {
-            if (!scope_list.ContainsKey(name))
+            string[] line = km.Split('\n');
+            foreach(string s in line)
             {
-                if (mumbers_list.ContainsKey(name))
+                string[] splited_s = s.Split('：');
+                if (splited_s[0].Trim() == "名称")
                 {
-                    scope_list[name] = mumbers_list[name];
-                    return true;
-                }
-                else
-                {
-                    scope_list[name] = current_mumbers[name];
-                    return true;
+                    string name;
+                    string[] split_fh = splited_s[1].Split('(');
+                    if (split_fh.Length > 1)
+                    {
+                        name = split_fh[0].Trim();
+                    }
+                    else
+                    {
+                        name = splited_s[1].Trim();
+                    }
+                    if (!km_list.Contains(name))
+                    {
+                        km_list.Add(name);
+                    }
                 }
             }
-            else
-            {
-                return false;
-            }
+            checkKM();
         }
 
-        public bool addScopeOnly(string name)
+        public void addScope(string name)
         {
-            if (!scope_list.ContainsKey(name))
-            {
-                if (mumbers_list.ContainsKey(name))
-                {
-                    scope_list[name] = mumbers_list[name];
-                    scope_list[name].isScopeOnly = true;
-                    return true;
-                }
-                else
-                {
-                    scope_list[name] = current_mumbers[name];
-                    scope_list[name].isScopeOnly = true;
-                    return true;
-                }
-            }
-            else
-            {
-                return false;
-            }
+            current_mumbers[name].isScope_new = true;
+            current_mumbers[name].isScopeOnly = false;
+        }
+
+        public void addScopeOnly(string name)
+        {
+            current_mumbers[name].isScope_new = true;
+            current_mumbers[name].isScopeOnly = true;
         }
 
         public void removeScope(string name)
         {
-            if (scope_list.ContainsKey(name))
-            {
-                scope_list[name].isScopeOnly = false;
-                scope_list.Remove(name);
-            }
+            current_mumbers[name].isScope_new = false;
+            current_mumbers[name].isScopeOnly = false;
         }
 
         public void cleanScope()
         {
-            scope_list.Clear();
+            foreach (Mumber m in current_mumbers.Values)
+            {
+                m.isScope_new = false;
+                m.isScopeOnly = false;
+            }
         }
 
-        public void cleanSoldier()
-        {
-            soldier_list.Clear();
-        }
-
+        /// <summary>
+        /// Add a new mumber in current mumber list. New mumber that does not exist in mumber list is acceptable.
+        /// </summary>
+        /// <param name="name">name of the new mumber</param>
         public void addCurrentMumber(string name)
         {
             if (!current_mumbers.ContainsKey(name))
@@ -199,16 +213,6 @@ namespace IncomeDistribution
             if (current_mumbers.ContainsKey(name))
             {
                 current_mumbers.Remove(name);
-            }
-            
-            if (scope_list.ContainsKey(name))
-            {
-                scope_list.Remove(name);
-            
-            }
-            if (soldier_list.ContainsKey(name))
-            {
-                soldier_list.Remove(name);
             }
         }
 
@@ -367,13 +371,23 @@ namespace IncomeDistribution
             mumbers_list.Clear();
             foreach (MumberNode node in node_list.Values)
             {
-                mumbers_list[node.m.name] = node.m;
+                //mumbers_list[node.m.name] = node.m;
+                addMumber(node.m.name, "");
                 foreach (MumberNode child in node.childs)
                 {
-                    mumbers_list[child.m.name] = child.m;
-                    mumbers_list[child.m.name].parent = child.parent.m.name;
+                    addMumber(child.m.name, child.parent.m.name);
+                    //mumbers_list[child.m.name] = child.m;
+                    //mumbers_list[child.m.name].parent = child.parent.m.name;
                 }
             }
+
+            //string test = "";
+            //foreach (string name in mumbers_list.Keys)
+            //{
+            //    test += name + "\n";
+            //}
+            //MessageBox.Show(test);
+
             saveMumberList();
         }
 
@@ -427,27 +441,99 @@ namespace IncomeDistribution
             sr.Close();
         }
 
-        public string generateReport(double income)
+
+        /// <summary>
+        /// Get soldiers and scopes in current list.
+        /// </summary>
+        /// <returns>[soldiers, scopes]</returns>
+        public List<Dictionary<string, Mumber>> getSoldierScopeList()
+        {
+            Dictionary<string, Mumber> soldiers = new Dictionary<string, Mumber>();
+            Dictionary<string, Mumber> scopes = new Dictionary<string, Mumber>();
+            foreach (Mumber m in current_mumbers.Values)
+            {
+                if (m.isScope_new)
+                {
+                    if (m.isScopeOnly)
+                    {
+                        scopes[m.name] = m;
+                    }
+                    else
+                    {
+                        scopes[m.name] = m;
+                        soldiers[m.name] = m;
+                    }
+                }
+                else
+                {
+                    soldiers[m.name] = m;
+                }
+            }
+            List<Dictionary<string, Mumber>> soldiers_scopes_list = new List<Dictionary<string, Mumber>>();
+            soldiers_scopes_list.Add(soldiers);
+            soldiers_scopes_list.Add(scopes);
+            return soldiers_scopes_list;
+        }
+
+
+        /// <summary>
+        /// Get final avaliable soldiers and scopes.
+        /// </summary>
+        /// <param name="ss_list"></param>
+        /// <returns>[soldiers, scopes]</returns>
+        public List<Dictionary<string, Mumber>> getFinalSoldierScopeList(List<Dictionary<string, Mumber>> ss_list)
         {
             bool is_new_exist = false;
-            report = "";
-            soldier_list.Clear();
             List<Mumber> new_account = new List<Mumber>();
-            foreach(Mumber m in current_mumbers.Values)
+            Dictionary<string, Mumber> soldier_list_final = new Dictionary<string, Mumber>();
+            Dictionary<string, Mumber> scope_list_final = new Dictionary<string, Mumber>();
+            foreach (Mumber m in current_mumbers.Values)
             {
                 if (!m.isNew)
                 {
-                    if (!soldier_list.ContainsKey(m.name))
+                    if (!m.isScopeOnly)
+                    {
+                        if (!soldier_list_final.ContainsKey(m.name))
+                        {
+                            if (m.parent == "")
+                            {
+                                soldier_list_final[m.name] = m;
+                            }
+                            else
+                            {
+                                if (!soldier_list_final.ContainsKey(m.parent))
+                                {
+                                    soldier_list_final[m.parent] = mumbers_list[m.parent];
+                                }
+                            }
+                        }
+                    }
+                    else
                     {
                         if (m.parent == "")
                         {
-                            soldier_list[m.name] = m;
+                            scope_list_final[m.name] = m;
                         }
                         else
                         {
-                            if (!soldier_list.ContainsKey(m.parent))
+                            if (!scope_list_final.ContainsKey(m.parent))
                             {
-                                soldier_list[m.parent] = mumbers_list[m.parent];
+                                scope_list_final[m.parent] = mumbers_list[m.parent];
+                            }
+                        }
+                    }
+
+                    if (m.isScope_new)
+                    {
+                        if (m.parent == "")
+                        {
+                            scope_list_final[m.name] = m;
+                        }
+                        else
+                        {
+                            if (!scope_list_final.ContainsKey(m.parent))
+                            {
+                                scope_list_final[m.parent] = mumbers_list[m.parent];
                             }
                         }
                     }
@@ -473,118 +559,86 @@ namespace IncomeDistribution
                 {
                     foreach (Mumber m in new_account)
                     {
-                        if (!soldier_list.ContainsKey(m.name))
+                        if (!m.isScopeOnly)
                         {
-                            if (m.parent == "")
+                            if (!soldier_list_final.ContainsKey(m.name))
                             {
-                                soldier_list[m.name] = m;
-                            }
-                            else
-                            {
-                                if (!soldier_list.ContainsKey(m.parent))
+                                if (m.parent == "")
                                 {
-                                    soldier_list[m.parent] = mumbers_list[m.parent];
+                                    soldier_list_final[m.name] = m;
+                                }
+                                else
+                                {
+                                    if (!soldier_list_final.ContainsKey(m.parent))
+                                    {
+                                        soldier_list_final[m.parent] = mumbers_list[m.parent];
+                                    }
                                 }
                             }
                         }
-                    }
-
-                }
-            }
-
-
-            List<string> scope_list_temp = new List<string>();
-            foreach (Mumber m in scope_list.Values)
-            {
-                if (m.parent == "")
-                {
-                    if (!scope_list_temp.Contains(m.name))
-                    {
-                        scope_list_temp.Add(m.name);
-                    }
-                }
-                else
-                {
-                    if (!scope_list_temp.Contains(m.parent))
-                    {
-                        scope_list_temp.Add(m.parent);
-                    }
-                }
-            }
-
-            List<string> soldier_list_temp = new List<string>();
-            foreach (Mumber m in soldier_list.Values)
-            {
-                if (m.parent == "")
-                {
-                    if (!soldier_list_temp.Contains(m.name))
-                    {
-                        soldier_list_temp.Add(m.name);
-                    }
-                }
-                else
-                {
-                    if (!soldier_list_temp.Contains(m.parent))
-                    {
-                        soldier_list_temp.Add(m.parent);
-                    }
-                }
-            }
-            foreach (Mumber m in current_mumbers.Values)
-            {
-                if (m.isScopeOnly)
-                {
-                    if (m.parent == "")
-                    {
-                        if (soldier_list_temp.Contains(m.name))
+                        else
                         {
-                            soldier_list_temp.Remove(m.name);
+                            scope_list_final[m.name] = m;
+                        }
+
+                        if (m.isScope_new)
+                        {
+                            scope_list_final[m.name] = m;
                         }
                     }
-                    else
-                    {
-                        if (soldier_list_temp.Contains(m.parent))
-                        {
-                            soldier_list_temp.Remove(m.parent);
-                        }
-                    }
+
                 }
             }
 
+            List<Dictionary<string, Mumber>> final_ss_list = new List<Dictionary<string, Mumber>>();
+            final_ss_list.Add(soldier_list_final);
+            final_ss_list.Add(scope_list_final);
+            return final_ss_list;
+
+        }
+
+        public string generateReport(double income)
+        {
+            report = "";
+            List<Mumber> new_account = new List<Mumber>();
+
+            List<Dictionary<string, Mumber>> ss_list = getSoldierScopeList();
+            List<Dictionary<string, Mumber>> final_ss_list = getFinalSoldierScopeList(ss_list);
+            
 
             report += "参与:\r\n";
             report += "\r\n";
-            foreach (string m in soldier_list_temp)
+            foreach (Mumber m in final_ss_list[0].Values)
             {
-                report += m + "\r\n";
+                report += m.name + "\r\n";
             }
             report += "\r\n";
-            report += "共计       " + soldier_list_temp.Count + " 人\r\n\r\n";
+            report += "共计       " + final_ss_list[0].Count + " 人\r\n\r\n";
             report += "斥候:\r\n";
 
             
-            foreach(string n in scope_list_temp)
+            foreach(Mumber n in final_ss_list[1].Values)
             {
-                report += n + "\r\n";
+                report += n.name + "\r\n";
             }
             
             report += "\r\n";
-            report += "共计       " + scope_list_temp.Count + " 人\r\n";
+            report += "共计       " + final_ss_list[1].Count + " 人\r\n";
             report += "============================\r\n";
             report += "总收入:" + income.ToString("N0") + " Isk\r\n";
 
             double scope_bonus = income * Program.SCOPE_BONUS;
-            if (scope_list_temp.Count == 0)
+            if (final_ss_list[1].Count == 0)
             {
                 scope_bonus = 0;
             }
-            double avg = (income - scope_bonus) / soldier_list_temp.Count;
-            scope_bonus /= scope_list_temp.Count;
+            double avg = (income - scope_bonus) / final_ss_list[0].Count;
+            scope_bonus /= final_ss_list[1].Count;
 
             report += "斥候奖励: " + scope_bonus.ToString("N0") + " /人\r\n";
             report += "参与奖励: " + avg.ToString("N0") + " /人\r\n";
 
-            exportToExcel(MainForm.p_MainForm.getTitle(), soldier_list_temp, scope_list_temp, income, avg, scope_bonus);
+            exportToExcel(MainForm.p_MainForm.getTitle(), final_ss_list[0].Keys.ToList(), final_ss_list[1].Keys.ToList(), income, avg, scope_bonus);
 
             return report;
         }
@@ -708,6 +762,76 @@ namespace IncomeDistribution
             sheet.SetColumnWidth(7, 20 * 256);
             workbook.Write(fs);
             fs.Close();
+        }
+
+        public void checkKM()
+        {
+            foreach (string name in km_list)
+            {
+                if (current_mumbers.ContainsKey(name))
+                {
+                    current_mumbers[name].isInKM = true;
+                }
+                else
+                {
+                    addCurrentMumber(name);
+                    current_mumbers[name].isInKM = true;
+                    current_mumbers[name].isInKMOnly = true;
+                }
+            }
+
+            foreach (Mumber m in current_mumbers.Values)
+            {
+                if (m.isInKM == null)
+                {
+                    m.isInKM = false;
+                }
+                if (m.isInKMOnly == null)
+                {
+                    m.isInKMOnly = false;
+                }
+            }
+
+            // Refresh List View
+            MainForm.p_MainForm.refreshMumberLV();
+
+            //test
+            ////////////////////////////////////
+            //string test = "";
+            //foreach (string name in km_list)
+            //{
+            //    test += name + "\n";
+            //}
+            //MessageBox.Show(test);
+            /////////////////////////////////////
+
+        }
+
+
+        /// <summary>
+        /// Reset KM list. isInKM in current mumber list will be set to null.
+        /// </summary>
+        public void resetKmList()
+        {
+            km_list.Clear();
+            foreach (Mumber m in current_mumbers.Values)
+            {
+                m.isInKM = null;
+                m.isInKMOnly = null;
+            }
+            checkKM();
+            MainForm.p_MainForm.refreshMumberLV();
+        }
+
+        /// <summary>
+        /// Show an introduction with content.
+        /// </summary>
+        /// <param name="content"></param>
+        public void showIntroDialog(string content)
+        {
+            IntroductionForm intro_form = new IntroductionForm();
+            intro_form.setContent(content);
+            intro_form.Show();
         }
 
     }

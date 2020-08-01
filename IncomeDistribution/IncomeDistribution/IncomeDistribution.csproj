@@ -64,6 +64,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IntroductionForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="IntroductionForm.Designer.cs">
+      <DependentUpon>IntroductionForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="KMImporter.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -85,6 +91,9 @@
     <Compile Include="MoneyDistributor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="IntroductionForm.resx">
+      <DependentUpon>IntroductionForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="KMImporter.resx">
       <DependentUpon>KMImporter.cs</DependentUpon>
     </EmbeddedResource>

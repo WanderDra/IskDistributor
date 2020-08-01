@@ -26,41 +26,102 @@ namespace IncomeDistribution
             p_MainForm = this;
         }
 
-        public void refreshMumberLV()
+
+        /// <summary>
+        /// Generate mumberlistLV
+        /// </summary>
+        public void genMumberLV()
         {
             Program.md.clearFleetInfo();
             mumberLV.Items.Clear();
             Program.md.cleanScope();
-            Program.md.cleanSoldier();
 
             Program.md.readFleetInfo(FleetInfoTB.Text);
             foreach (MoneyDistributor.Mumber m in Program.md.Current_mumbers.Values)
             {
-                ListViewItem lvi = new ListViewItem();
-                if (m.parent == "")
-                {
+                addMumberInListView(m);
+            }
 
-                    if (m.isNew)
+            Program.md.checkKM();
+        }
+
+        /// <summary>
+        /// Refresh mumberListLV, without clearing the scopes and fleet info.
+        /// </summary>
+        public void refreshMumberLV()
+        {
+            mumberLV.Items.Clear();
+
+            foreach (MoneyDistributor.Mumber m in Program.md.Current_mumbers.Values)
+            {
+                addMumberInListView(m);
+            }
+        }
+
+        public void addMumberInListView(MoneyDistributor.Mumber m)
+        {
+            ListViewItem lvi = new ListViewItem();
+            
+            // Mark?
+            if (m.parent == "")
+            {
+
+                if (m.isNew)
+                {
+                    //MessageBox.Show("test");
+                    lvi.Text = "*";
+                    if (m.isInKM == false)
                     {
-                        lvi.Text = "*";
-                        lvi.SubItems.Add(m.name);
-                        lvi.SubItems.Add("");
-                        mumberLV.Items.Add(lvi);
+                        lvi.Text = "-*";
                     }
-                    else
+                    if (m.isInKMOnly == true)
                     {
-                        lvi.Text = "";
-                        lvi.SubItems.Add(m.name);
-                        lvi.SubItems.Add("");
-                        mumberLV.Items.Add(lvi);
+                        lvi.Text = "+*";
                     }
                 }
                 else
                 {
                     lvi.Text = "";
-                    lvi.SubItems.Add(m.name);
-                    lvi.SubItems.Add(m.parent);
-                    mumberLV.Items.Add(lvi);
+                    if (m.isInKM == false)
+                    {
+                        lvi.Text = "-";
+                    }
+                    if (m.isInKMOnly == true)
+                    {
+                        lvi.Text = "+";
+                    }
+                }
+
+                lvi.SubItems.Add(m.name);
+                lvi.SubItems.Add("");
+                mumberLV.Items.Add(lvi);
+            }
+            else
+            {
+                lvi.Text = "";
+                if (m.isInKM == false)
+                {
+                    lvi.Text = "-";
+                }
+                if (m.isInKMOnly == true)
+                {
+                    lvi.Text = "+";
+                }
+                lvi.SubItems.Add(m.name);
+                lvi.SubItems.Add(m.parent);
+                mumberLV.Items.Add(lvi);
+            }
+
+            // Back color?
+            if (m.isScope_new)
+            {
+                if (m.isScopeOnly)
+                {
+                    lvi.BackColor = Color.Yellow;
+                }
+                else
+                {
+                    lvi.BackColor = Color.Red;
                 }
             }
         }
@@ -83,7 +144,7 @@ namespace IncomeDistribution
         {
             if (e.KeyCode == Keys.Enter)
             {
-                refreshMumberLV();
+                genMumberLV();
             }
         }
 
@@ -113,7 +174,7 @@ namespace IncomeDistribution
             if (mumberLV.SelectedItems.Count > 0)
             {
                 Program.md.addMumber(mumberLV.SelectedItems[0].SubItems[1].Text.ToString(), mainAccountTB.Text);
-                refreshMumberLV();
+                genMumberLV();
             }
 
         }
@@ -126,7 +187,7 @@ namespace IncomeDistribution
                 {
                     Program.md.addMumber(lvi.SubItems[1].Text.ToString(), "");
                 }
-                refreshMumberLV();
+                genMumberLV();
             }
         }
 
@@ -143,7 +204,7 @@ namespace IncomeDistribution
                 FileStream file = new FileStream(fName, FileMode.Open);
                 Program.md.importMumberFromFile(file);
             }
-            refreshMumberLV();
+            genMumberLV();
         }
 
         private void addScopeBtn_Click(object sender, EventArgs e)
@@ -153,10 +214,8 @@ namespace IncomeDistribution
                 foreach (ListViewItem lvi in mumberLV.SelectedItems)
                 {
                     string name = lvi.SubItems[1].Text;
-                    if (Program.md.addScope(name))
-                    {
-                        lvi.BackColor = Color.Red;
-                    }
+                    Program.md.addScope(name);
+                    lvi.BackColor = Color.Red;
                 }
             }
         }
@@ -168,10 +227,8 @@ namespace IncomeDistribution
                 foreach (ListViewItem lvi in mumberLV.SelectedItems)
                 {
                     string name = lvi.SubItems[1].Text;
-                    if (Program.md.addScopeOnly(name))
-                    {
-                        lvi.BackColor = Color.Yellow;
-                    }
+                    Program.md.addScopeOnly(name);
+                    lvi.BackColor = Color.Yellow;
                 }
             }
         }
@@ -246,8 +303,11 @@ namespace IncomeDistribution
         private void removeCMumberBtn_Click(object sender, EventArgs e)
         {
             if (mumberLV.SelectedItems.Count != 0) {
-                Program.md.removeCurrentMumber(mumberLV.SelectedItems[0].SubItems[1].Text.ToString());
-                mumberLV.SelectedItems[0].Remove();
+                foreach (ListViewItem lvi in mumberLV.SelectedItems)
+                {
+                    Program.md.removeCurrentMumber(lvi.SubItems[1].Text.ToString());
+                    lvi.Remove();
+                }
             }
         }
 
@@ -309,7 +369,24 @@ namespace IncomeDistribution
 
         private void KMCheckBtn_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("敬请期待！");
+            KMImporter km_importer = new KMImporter();
+            km_importer.Show();
+        }
+
+        private void resetKMBtn_Click(object sender, EventArgs e)
+        {
+            Program.md.resetKmList();
+        }
+
+        private void introBtn_Click(object sender, EventArgs e)
+        {
+            string intro =
+                "-: 未在KM中出现的玩家\r\n" +
+                "+: 仅出现在KM中的玩家\r\n" +
+                "*: 第一次参与记录的玩家\r\n" +
+                "\r\n" +
+                "多项满足条件会出现多个符号";
+            Program.md.showIntroDialog(intro);
         }
     }
 }
